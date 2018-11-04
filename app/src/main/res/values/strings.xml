@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">晴云天气</string>
+    <string name="dateLabel">日期</string>
+    <string name="weatherLabel">天气</string>
+    <string name="TodayMaxTemperature">最高温</string>
+    <string name="TodayMinTemperature">最低温</string>
+    <string name="WindDirection">风向</string>
+    <string name="setting">单位设置</string>
+    <string name="exiting">退出程序</string>
+    <string name="temperature">温度单位</string>
+    <string name="unitC">\u2103-摄氏度</string>
+    <string name="unitF">\u2109-华氏摄氏度</string>
+    <string name="unitP">%-相对湿度</string>
+    <string name="unitA">g/\u33A5-绝对湿度</string>
+    <string name="singleC">\u2103</string>
+    <string name="singleF">\u2109</string>
+    <string name="singleP">%</string>
+    <string name="singleA">g/\u33A5</string>
+    <string name="location">location</string>
+    <string name="forecast">未来七天预报</string>
+    <string name="tmp">25\u2103</string>
+    <string name="version">当前版本：V1.2.0</string>
+    <string name="finished">更新完成</string>
+    <string name="banquan">\u00A92018.Powered by ShouXianghang.All rights reserved.</string>
+    <string name="CTemper">\u2103</string>
+</resources>
