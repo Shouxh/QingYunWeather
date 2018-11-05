@@ -6,6 +6,8 @@ v1.0.1    |  v1.2.0
 
 ![github](https://www.shouxh.ml/referImg/fluidicon.png)[本项目的github网址](https://github.com/Shouxh/QingYunWeather)
 
+[V1.2.0下载地址](https://pan.baidu.com/s/1BmCH2qGJRjdHXjSOoIIuvw)
+
 **v1.0.1说明：（2018.5.1）**
 
 >1. 建立了初步的框架
@@ -72,7 +74,12 @@ v1.0.1    |  v1.2.0
 
 **v1.2.0说明：（2018.11.3）**
 
->1. 添加了今日天气内的24小时预报
+>1. 添加了今日天气内的24小时预报播报
 >2. 更换了壁纸，现在刷新会随机切换壁纸
+
+**v1.2.1说明：（2018.11.5）**
+
+>1.重新调整了布局，现在看起来更加柔和了
+>2.支持Android 9.0
 
  `作者：首相航`

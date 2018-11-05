@@ -18,7 +18,9 @@
         android:id="@+id/weather_information"
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
-        android:gravity="start"
+        android:layout_marginStart="-16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
         android:textColor="#ffffff"/>
 
     <TextView

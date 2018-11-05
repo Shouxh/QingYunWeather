@@ -45,9 +45,9 @@ public class getForecast extends Thread {
     public getForecast(String requestCity, Handler handler, Context context) {
         this.context=context;
         this.handler=handler;
+        CITY = requestCity;
         //debug使用昆山代替模拟器的国外城市，防止崩溃，正式发布请务必使用正确的构造赋值式
 //        CITY="昆山";
-        CITY = requestCity;
     }
 
     @Override

@@ -19,7 +19,7 @@
             android:textColor="#ffffff"/>
 
         <TextView
-            android:paddingStart="8dp"
+            android:paddingStart="19dp"
             android:paddingEnd="0dp"
             android:id="@+id/weather_label"
             android:layout_width="0dp"
@@ -31,7 +31,7 @@
             android:textColor="#ffffff"/>
 
         <TextView
-            android:paddingStart="5dp"
+            android:paddingStart="9dp"
             android:paddingEnd="0dp"
             android:id="@+id/max_temper"
             android:layout_width="0dp"
@@ -55,7 +55,7 @@
             android:textColor="#ffffff"/>
 
         <TextView
-            android:paddingStart="-8dp"
+            android:paddingStart="-15dp"
             android:paddingEnd="0dp"
             android:id="@+id/wind_direction"
             android:layout_width="0dp"
