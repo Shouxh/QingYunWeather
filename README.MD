@@ -2,7 +2,7 @@
 
 最初版本号 | 最新版本号
 --------- |  ---------
-v1.0.1    |  v1.2.0
+v1.0.1    |  v1.2.2
 
 ![github](https://www.shouxh.ml/referImg/fluidicon.png)[本项目的github网址](https://github.com/Shouxh/QingYunWeather)
 
