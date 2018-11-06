@@ -9,9 +9,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
-
-import java.util.PropertyResourceBundle;
 
 public class UpdateService extends Service {
     private NetworkReceiver networkReceiver;
@@ -52,7 +49,7 @@ public class UpdateService extends Service {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
             if(networkInfo!=null&&networkInfo.isAvailable()){
                 if(mActivity!=null) {
-                    mActivity.refreshCityInfor();
+                    mActivity.refreshCityInfo();
                 }
             }
 

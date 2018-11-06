@@ -56,6 +56,7 @@ import com.shouxh.weatherMain.entities.HourWeather;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -215,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isShakeChecked =sharedPreferences.getBoolean("isShakeChecked",false);
         initService();
         if (isShakeChecked) {
-            setShakedChangeCity();
+            setShackedChangeCity();
         }else {
             if(sensorManager!=null) {
                 sensorManager.unregisterListener(sensorEventListener, sensor);
@@ -253,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onRefresh() {
                 initProvince();
                 initRandomWallpaper();
-                refreshCityInfor();
+                refreshCityInfo();
             }
         });
     }
@@ -276,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         toolbar.setTitle(resultStr);
                         toolbar.setSubtitle(R.string.finished);
                     }else {
+                        Toast.makeText(MainActivity.this,"定位出错："+aMapLocation.getErrorInfo(),Toast.LENGTH_LONG).show();
                         Log.e(TAG, "定位出错！错误代码： "+aMapLocation.getErrorCode()+"\n错误信息: " +
                                 ""+aMapLocation.getErrorInfo());
                     }
@@ -454,13 +456,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void initUI(String[] forecast,String todayInfor,String[] lifestyle,String airQulity,
-                        String tempFormat, String humFormat){
-
-        offlineForecast=forecast;
-        offlineToday=todayInfor;
+    private void initUI(String[] forecast,String todayInfo,String[] lifestyle,String airQuality,
+                        String tempFormat, String humFormat) {
+        Toast weatherInfoEmptyToast = Toast.makeText(MainActivity.this, "天气数据异常，请重新打开网络后重试！", Toast.LENGTH_LONG);
+            if (forecast[0].isEmpty() || todayInfo.isEmpty() || lifestyle[0].isEmpty() || airQuality.isEmpty()) {
+                weatherInfoEmptyToast.show();
+                return;
+            }
+        offlineForecast = forecast;
+        offlineToday=todayInfo;
         offlineLifestyle=lifestyle;
-        offlineAir=airQulity;
+        offlineAir=airQuality;
         String bodyTemp;
 
         TextView comfort = findViewById(R.id.comfort_text);
@@ -504,17 +510,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //处理未来7天的数据的显示
             for (String day : forecast) {
                 day = day.trim();
-                String date = day.substring(day.indexOf("天是") + 3, day.indexOf("最高温度"));
-                String max = day.substring(day.indexOf("最高温度") + 5, day.indexOf("最低温度")-1);
-                String min = day.substring(day.indexOf("最低温度") + 5, day.indexOf("风向")-1);
-                String fx = day.substring(day.indexOf("风向") + 3, day.indexOf("风力"));
-                String fl = day.substring(day.indexOf("风力") + 3, day.indexOf("大气压"));
-                String pressure = day.substring(day.indexOf("大气压") + 4, day.indexOf("白天")-1);
-                String dailyCondition = day.substring(day.indexOf("白天") + 7, day.indexOf("紫外线"));
-                String uv = day.substring(day.indexOf("紫外线") + 6, day.indexOf("能见度"));
-                String visibility = day.substring(day.indexOf("能见度") + 4);
-                Weather weather = new Weather(date, max, min, fx, fl, pressure, dailyCondition, uv, visibility);
-                weatherList.add(weather);
+                if (!day.isEmpty()) {
+                    String date = day.substring(day.indexOf("天是") + 3, day.indexOf("最高温度"));
+                    String max = day.substring(day.indexOf("最高温度") + 5, day.indexOf("最低温度") - 1);
+                    String min = day.substring(day.indexOf("最低温度") + 5, day.indexOf("风向") - 1);
+                    String fx = day.substring(day.indexOf("风向") + 3, day.indexOf("风力"));
+                    String fl = day.substring(day.indexOf("风力") + 3, day.indexOf("大气压"));
+                    String pressure = day.substring(day.indexOf("大气压") + 4, day.indexOf("白天") - 1);
+                    String dailyCondition = day.substring(day.indexOf("白天") + 7, day.indexOf("紫外线"));
+                    String uv = day.substring(day.indexOf("紫外线") + 6, day.indexOf("能见度"));
+                    String visibility = day.substring(day.indexOf("能见度") + 4);
+                    Weather weather = new Weather(date, max, min, fx, fl, pressure, dailyCondition, uv, visibility);
+                    weatherList.add(weather);
+                }
             }
             for (Weather weather : weatherList) {
                 View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,
@@ -533,19 +541,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             //处理空气指数
-            airQulity=airQulity.trim();
-            if(airQulity.equals("empty")){
-                drawerLayout.removeView(aqiLayout);
+            airQuality=airQuality.trim();
+            if(airQuality.equals("empty")){
+                aqiLayout.setVisibility(View.GONE);
             }else {
-                String aqiE = airQulity.substring(airQulity.indexOf("aqi") + 6, airQulity.indexOf("pm")
+                aqiLayout.setVisibility(View.VISIBLE);
+                String aqiE = airQuality.substring(airQuality.indexOf("aqi") + 6, airQuality.indexOf("pm")
                         - 1);
-                String pm25 = airQulity.substring(airQulity.indexOf("pm2.5") + 8);
-
+                String pm25 = airQuality.substring(airQuality.indexOf("pm2.5") + 8);
                 aqiText.setText(aqiE);
                 pmText.setText(pm25);
             }
             //处理今日天气其他参数
-            bodyTemp = todayInfor.substring(todayInfor.indexOf("体感温度：")+5);
+            bodyTemp = todayInfo.substring(todayInfo.indexOf("体感温度：")+5);
             Weather weather = weatherList.get(0);
             cloudForce.setText(weather.getCloudForce());
             visible.setText(weather.getVisibility()+"千米");
@@ -566,32 +574,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         //处理今日温度显示
         String tday = forecast[0];
-        String Tmin = tday.substring(tday.indexOf("最低温度") + 5, tday.indexOf("风向")-1);
-        String Tmax = tday.substring(tday.indexOf("最高温度") + 5,tday.indexOf("最低温度")-1);
-        String tmp = todayInfor.substring(todayInfor.indexOf("气温")+3,todayInfor
-                .indexOf("湿")).trim();
-        temperature.setText(setTemperatureFormat(tmp,tempF));
-        min_and_max.setText(setTemperatureFormat(Tmin,tempF)+"-"+setTemperatureFormat(Tmax, tempF));
-        bodyTmp.setText(setTemperatureFormat(bodyTemp,tempF));
-        temperature.setTextSize(70);
-
-        //处理湿度显示方式
-        String hum = todayInfor.substring(todayInfor.indexOf("湿度")+3,todayInfor
-                .lastIndexOf("天气")).trim();
-        String units;
-        if(HumdF.equals(getResources().getString(R.string.unitP))){
-            units=getResources().getString(R.string.singleP);
-            humidity.setText(hum+units);
-        }else if (HumdF.equals(getResources().getString(R.string.unitA))){
-            units=getResources().getString(R.string.singleA);
-            int humd = Integer.valueOf(hum);
-            humd-=35;
-            humidity.setText(humd+units);
+        if (!tday.isEmpty()) {
+            String Tmin = tday.substring(tday.indexOf("最低温度") + 5, tday.indexOf("风向") - 1);
+            String Tmax = tday.substring(tday.indexOf("最高温度") + 5, tday.indexOf("最低温度") - 1);
+            String tmp = todayInfo.substring(todayInfo.indexOf("气温") + 3, todayInfo
+                    .indexOf("湿")).trim();
+            temperature.setText(setTemperatureFormat(tmp, tempF));
+            min_and_max.setText(setTemperatureFormat(Tmin, tempF) + "-" + setTemperatureFormat(Tmax, tempF));
+            bodyTmp.setText(setTemperatureFormat(bodyTemp, tempF));
+            temperature.setTextSize(70);
         }
 
+        //处理湿度显示方式
+        if (!todayInfo.isEmpty()) {
+            String hum = todayInfo.substring(todayInfo.indexOf("湿度") + 3, todayInfo
+                    .lastIndexOf("天气")).trim();
+            String units;
+            if (HumdF.equals(getResources().getString(R.string.unitP))) {
+                units = getResources().getString(R.string.singleP);
+                humidity.setText(hum + units);
+            } else if (HumdF.equals(getResources().getString(R.string.unitA))) {
+                units = getResources().getString(R.string.singleA);
+                int humd = Integer.valueOf(hum);
+                humd -= 35;
+                humidity.setText(humd + units);
+            }
+        }
 
-        String status = todayInfor.substring(todayInfor.indexOf("状况")+3,todayInfor.indexOf("体感")-1)
-                .trim();
+        String status;
+        if (!todayInfo.isEmpty()) {
+           status  = todayInfo.substring(todayInfo.indexOf("状况") + 3, todayInfo.indexOf("体感") - 1)
+                    .trim();
+        }else {
+            status="晴";
+        }
        weatherStatus.setText(status);
         if(status.equals("晴")){
             Glide.with(this).load(R.mipmap.sun).into(weatherImage);
@@ -788,7 +804,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case getForecast.UPDATE_WEATHER:
                     bundle = msg.getData();//获取传过来的天气数据;
                     String[] forecast = bundle.getStringArray("forecast");
-                    String todayInfor = bundle.getString("today");
+                    String todayInfo = bundle.getString("today");
                     String[] lifestyle = bundle.getStringArray("lifestyle");
                     String air = bundle.getString("air");
                     String[] hourTimeWeather = bundle.getStringArray("hourTimeWeather");
@@ -798,14 +814,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         mainActivity.airQ=air;
                     }
                     mainActivity.fore=forecast;
-                    mainActivity.today=todayInfor;
+                    mainActivity.today=todayInfo;
                     mainActivity.life=lifestyle;
                     mainActivity.hourlyWeatherArray=hourTimeWeather;
                     mainActivity.isStart=false;
                     if (hourTimeWeather!=null) {
                         mainActivity.initTodayHourWeather(hourTimeWeather);
                     }
-                    mainActivity.initUI(forecast,todayInfor,lifestyle,air,null,null);
+                    mainActivity.initUI(forecast,todayInfo,lifestyle,air,null,null);
                     break;
                 default:
                     break;
@@ -814,7 +830,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    public void refreshCityInfor(){
+    public void refreshCityInfo(){
         swipeRefreshLayout.setRefreshing(true);
         getForecast getForecast = new getForecast(toolbar.getTitle().toString(),
                 myHandler,MainActivity.this);
@@ -823,7 +839,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void setShakedChangeCity(){
+    private void setShackedChangeCity(){
         int rate;
         sensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
         vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);
@@ -911,7 +927,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isShakeChecked =getSharedPreferences("Setting",MODE_PRIVATE).getBoolean
                 ("isShakeChecked",false);
         if (isShakeChecked) {
-            setShakedChangeCity();
+            setShackedChangeCity();
         }else {
             if(sensorManager!=null) {
                 sensorManager.unregisterListener(sensorEventListener, sensor);

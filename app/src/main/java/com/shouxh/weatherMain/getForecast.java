@@ -8,12 +8,9 @@ import android.os.Handler;
 import android.os.Message;
 
 import android.util.Log;
-import android.widget.Toast;
 
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.shouxh.weatherMain.entities.Hourly;
 
@@ -26,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -34,8 +32,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ *
+ * 获取天气数据的子线程
+ *
+ * @author shoux
+ * */
 public class getForecast extends Thread {
-    public static final int UPDATE_WEATHER = 0x101;
+    static final int UPDATE_WEATHER = 0x101;
     private String CITY;
     private Handler handler;
     private  Context context;
@@ -78,24 +82,32 @@ public class getForecast extends Thread {
             String today="";
             String lifestyle="";
             if(data.contains("status")&&!data.contains("invalid")){
-                status = data.substring(data.indexOf("status") + 9, data.indexOf("now")-3);
-                forecast = data.substring(data.indexOf("daily_forecast")+16,data.indexOf
-                        ("lifestyle")-2);
-                today = data.substring(data.indexOf("now")+5,data.indexOf("daily_forecast")-2);
+                try {
+                    status = data.substring(data.indexOf("status") + 9, data.indexOf("now")-3);
+                    forecast = data.substring(data.indexOf("daily_forecast")+16,data.indexOf
+                            ("lifestyle")-2);
+                    today = data.substring(data.indexOf("now")+5,data.indexOf("daily_forecast")-2);
+                } catch (StringIndexOutOfBoundsException e) {
+                    status="404";
+                }
                 StringBuilder todayBuilder = new StringBuilder();
                 todayBuilder.append(today);
                 todayBuilder.insert(0,"[");
                 todayBuilder.append("]");
                 today=todayBuilder.toString();
-                lifestyle = data.substring(data.lastIndexOf("["), data.lastIndexOf("]") -1);
+                try {
+                    lifestyle = data.substring(data.lastIndexOf("["), data.lastIndexOf("]") -1);
+                } catch (StringIndexOutOfBoundsException e) {
+                    status= "404";
+                }
             }else {
                 status = "404";
             }
             Bundle bundle;
             String[] forecastArray;
-            String todayInfor;
+            String todayInfo;
             forecastArray = resolveJson(forecast,status);
-            todayInfor = resolveTodayJson(today,status);
+            todayInfo = resolveTodayJson(today,status);
             String[] lifeStyleArray = resolveLifestyle(lifestyle,status);
             String[] finaLifeStyle = new String[4];
             if(lifeStyleArray!=null) {
@@ -104,17 +116,18 @@ public class getForecast extends Thread {
                 finaLifeStyle[2] = lifeStyleArray[5];
                 finaLifeStyle[3] = lifeStyleArray[6];
             }
-           String airQulity = getAirQulity(CITY);
-            if(airQulity==null){
-                airQulity="";
+           String airQuality = getAirQuality(CITY);
+            if(airQuality==null){
+                airQuality="";
             }
             String[] weatherArray = initAndResolveTodayHourTimeJson(CITY);
+
             message = new Message();
             bundle = new Bundle();
             bundle.putStringArray("forecast", forecastArray);
-            bundle.putString("today", todayInfor);
+            bundle.putString("today", todayInfo);
             bundle.putStringArray("lifestyle", finaLifeStyle);
-            bundle.putString("air",airQulity);
+            bundle.putString("air",airQuality);
             bundle.putStringArray("hourTimeWeather",weatherArray);
             message.setData(bundle);
             message.what = UPDATE_WEATHER;
@@ -125,7 +138,7 @@ public class getForecast extends Thread {
     }
 
 
-    private String getAirQulity(String city){
+    private String getAirQuality(String city){
         String data;
         String status;
         String airQ ;
@@ -144,10 +157,15 @@ public class getForecast extends Thread {
             data = response.body().string();
 //            Log.i("TAG--find error", data);
             if(data.contains("status")&&!data.contains("denied")){
+                try {
                     status = data.substring(data.indexOf("status") + 9, data.indexOf("air_now_city")
                             - 3);
                     airQ = data.substring(data.indexOf("air_now_city") + 14, data.indexOf("air_now_station") - 2);
-                    result = resolveAir(airQ, status);
+                } catch (StringIndexOutOfBoundsException e) {
+                    status = "404";
+                    airQ="";
+                }
+                result = resolveAir(airQ, status);
             }else {
                 String pm25;
                 URL url1=new URL(BackupRequestURL+city);
@@ -177,7 +195,7 @@ public class getForecast extends Thread {
 
 
     private String[] resolveJson(String data,String status) {
-        String[] threeDaysWeather = new String[7];
+        String[] threeDaysWeather = {"","","","","","",""};
         String[] dayOrder = {"今天", "明天", "后天","大后天","5天","6天","7天"};
         try {
             if (status.equals("ok")) {
@@ -245,10 +263,10 @@ public class getForecast extends Thread {
                 for (int j = 0; j < todayArray.length(); j++) {
                     JSONObject object = todayArray.getJSONObject(j);
                     String tmp = object.getString("tmp");//气温
-                    String humdity = object.getString("hum");//湿度
+                    String humidity = object.getString("hum");//湿度
                     String condition = object.getString("cond_txt");//天气状况
                     String bodyTmp = object.getString("fl");
-                    result = "\n今天气温：" + tmp + "\n湿度：" + humdity + "\n天气状况：" +
+                    result = "\n今天气温：" + tmp + "\n湿度：" + humidity + "\n天气状况：" +
                             condition+"\n体感温度："+bodyTmp;
                 }
             }
@@ -259,14 +277,14 @@ public class getForecast extends Thread {
     }
 
     private String[] resolveLifestyle(String data,String status){
-        String[] lifestyles = new String[8];
+        String[] lifestyles = {"","","","","","","",""};
         try {
-            if (status.equals("ok")) {
+            if (status.equals("ok") && !data.isEmpty()) {
                 JSONArray lifestyleArray = new JSONArray(data);
                 for (int k = 0; k < lifestyleArray.length(); k++) {
                     JSONObject object = lifestyleArray.getJSONObject(k);
-                    String infor = object.getString("txt");
-                    lifestyles[k] = infor;
+                    String info = object.getString("txt");
+                    lifestyles[k] = info;
                 }
             }
         } catch (JSONException e) {
@@ -276,7 +294,7 @@ public class getForecast extends Thread {
     }
 
     private String resolveAir(String data,String status){
-        String air = "";
+        String air = "0";
         if (status.equals("ok")) {
             try {
                 JSONObject jsonObject = new JSONObject(data);
