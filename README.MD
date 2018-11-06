@@ -6,7 +6,7 @@ v1.0.1    |  v1.2.0
 
 ![github](https://www.shouxh.ml/referImg/fluidicon.png)[本项目的github网址](https://github.com/Shouxh/QingYunWeather)
 
-[V1.2.0下载地址](https://pan.baidu.com/s/1BmCH2qGJRjdHXjSOoIIuvw)
+[V1.2.0下载地址](https://pan.baidu.com/s/1QaSRY6jJoqyefTWOeZ-yKg)
 
 **v1.0.1说明：（2018.5.1）**
 
@@ -81,5 +81,11 @@ v1.0.1    |  v1.2.0
 
 >1.重新调整了布局，现在看起来更加柔和了
 >2.支持Android 9.0
+
+**v1.2.2说明：（2018.11.7）**
+
+>1.修复了定位失败导致获取天气失败进一步导致程序崩溃的BUG
+>2.修复了有些地区无法获取AQI和PM2.5数据但是程序依然显示空气质量框的BUG
+>3.定位失败和获取天气失败都添加了对应的提示
 
  `作者：首相航`
