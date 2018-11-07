@@ -88,7 +88,7 @@ public class FilterAdapter extends BaseAdapter implements Filterable {
                 results.count = original.size();
             }else {
                 // 创建集合保存过滤后的数据
-                List<String> mList = new ArrayList<String>();
+                List<String> mList = new ArrayList<>();
                 // 遍历原始数据集合，根据搜索的规则过滤数据
                 for(String s: original){
                     // 这里就是过滤规则的具体实现
@@ -101,6 +101,12 @@ public class FilterAdapter extends BaseAdapter implements Filterable {
                 results.count = mList.size();
             }
 
+            if (results.count==0){
+                ArrayList<String> tmpList =new ArrayList<String>();
+                tmpList.add("您输入的城市不在列表中，试试手动点击键盘的搜索来获取天气预报");
+                results.values = tmpList;
+                results.count=1;
+            }
             // 返回FilterResults对象
             return results;
         }
@@ -109,6 +115,7 @@ public class FilterAdapter extends BaseAdapter implements Filterable {
          * 该方法用来刷新用户界面，根据过滤后的数据重新展示列表
          */
         @Override
+        @SuppressWarnings("unchecked")
         protected void publishResults(CharSequence constraint,
                                       FilterResults results) {
             // 获取过滤后的数据

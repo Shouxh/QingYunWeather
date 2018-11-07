@@ -3,5 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:id="@+id/setting" android:title="@string/setting"  app:showAsAction="never"/>
+    <item android:id="@+id/quickLocation" android:title="@string/quickReturnLocation" app:showAsAction="never" />
+    <item android:id="@+id/save_city" android:title="@string/saveCity" app:showAsAction="never" />
     <item android:id="@+id/exit"  android:title="@string/exiting" app:showAsAction="never"/>
 </menu>

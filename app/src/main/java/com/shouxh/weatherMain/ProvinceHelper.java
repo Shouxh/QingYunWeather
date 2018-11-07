@@ -69,6 +69,33 @@ public class ProvinceHelper extends SQLiteOpenHelper {
         cursor.close();
     }
 
+    /**
+     *
+     * 当用户搜索的城市获取天气预报成功后，调用此方法将成功的城市加入城市列表中
+     * */
+    public void addUserSearchCity(String cityName){
+        SQLiteDatabase database = getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_CITY,cityName);
+        database.insert(TABLE_NAME,null,contentValues);
+        database.close();
+    }
+
+    /**
+     * 撤销添加自定义的操作
+     *
+     * */
+    public void UndoAddUserSearchCity(String cityName){
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            return;
+        }
+        SQLiteDatabase database = getWritableDatabase();
+        database.delete(TABLE_NAME,"City_Name = ?",new String[]{cityName});
+        database.close();
+    }
+
     public ArrayList<String> getAllInformation(){
         SQLiteDatabase database = getReadableDatabase();
         ArrayList<String> cityList = new ArrayList<>();

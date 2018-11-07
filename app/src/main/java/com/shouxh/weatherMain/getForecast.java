@@ -248,9 +248,11 @@ public class getForecast extends Thread {
         Gson gson = new Gson();
         List<Hourly> hourlies =  gson.fromJson(hourly,new TypeToken<List<Hourly>>(){}.getType());
         String[] hourWeather = new String[8];
-        for(int i=0;i<hourWeather.length;i++){
-            String time =hourlies.get(i).getTime().substring(11);
-            hourWeather[i] = time+"-"+hourlies.get(i).getCondText()+"-"+hourlies.get(i).getTemper();
+        if (hourlies!=null) {
+            for (int i = 0; i < hourWeather.length; i++) {
+                String time = hourlies.get(i).getTime().substring(11);
+                hourWeather[i] = time + "-" + hourlies.get(i).getCondText() + "-" + hourlies.get(i).getTemper();
+            }
         }
         return hourWeather;
     }

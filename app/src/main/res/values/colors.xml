@@ -6,7 +6,7 @@
     <color name="toolbarColor">#80000000</color>
     <color name="toolbarTextColor">#FFFFFF</color>
     <color name="searchShapeBackgroundColor">#afffffff</color>
-    <color name="cityListBackgroundColor">#c9504f4f</color>
+    <color name="cityListBackgroundColor">#80000000</color>
     <color name="trans">#00ffffff</color>
     <color name="cityNameColor">#ddffffd2</color>
     <color name="AppNameColor">#ffa228</color>

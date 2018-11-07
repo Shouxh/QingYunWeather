@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -24,15 +25,18 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -56,7 +60,6 @@ import com.shouxh.weatherMain.entities.HourWeather;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -129,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static String[] forecastNames = {"today","tomo","aftertomo","four","five","six","seven"};
     private static String[] lifestyleNames = {"comf","sport","uvp","carw"};
     private static String[] hourlyWeatherTimeNames = {"first3","second3","third3","fourth3","fifth3","sixth3","seventh3","eighth3"};
+    private String queryCityName = null;
     private static AppCompatActivity mActivity;
     private SensorManager sensorManager;
     private Vibrator vibrator;
@@ -257,6 +261,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 refreshCityInfo();
             }
         });
+
+        searchList.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+            @Override
+            public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+                menu.add(Menu.FIRST,0,0,"删除该城市");
+            }
+        });
     }
 
 
@@ -318,14 +329,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         searchList.setAdapter(filterAdapter);
     }
 
+
     private void setListener(){
         // 没有进行搜索的时候，也要添加对listView的item单击监听
         setItemClick(cityList);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-//                        getForecast getForecast = new getForecast(query,myHandler,MainActivity.this);
-//                        getForecast.start();
+               View view = searchList.getChildAt(0);
+               TextView firstItemText = view.findViewById(R.id.cityName);
+                System.out.println(firstItemText.getText().toString());
+                if (firstItemText.getText().toString().contains("试试")) {
+                    swipeRefreshLayout.setRefreshing(true);
+                    queryCityName=query;
+                    getForecast getForecast = new getForecast(query, myHandler, MainActivity.this);
+                    getForecast.start();
+                }else {
+                    Toast.makeText(MainActivity.this,"检测到城市列表中有您输入的关键字，请在下方列表中进行查看选择",Toast.LENGTH_SHORT).show();
+                    return false;
+                }
                 if (searchView != null) {
                     // 得到输入管理对象
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -334,22 +356,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
                         // 输入法如果是显示状态，那么就隐藏输入法
                     }
-                    //searchView.clearFocus();
-                    Toast.makeText(MainActivity.this,"请在下方匹配的列表进行选择",Toast.LENGTH_SHORT).show();
-//                    toolbar.setTitle(query);
-//                    toolbar.setSubtitle(R.string.finished);
-                   // drawerLayout.closeDrawer(Gravity.START);
+                    searchView.clearFocus();
+                    //Toast.makeText(MainActivity.this,"请在下方匹配的列表进行选择",Toast.LENGTH_SHORT).show();
+                        toolbar.setTitle(query);
+//                        toolbar.setSubtitle(R.string.finished);
+                    drawerLayout.closeDrawer(Gravity.START);
                 }
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                queryCityName=null;
                 if(filterAdapter!=null){
                     filterAdapter.getFilter().filter(newText);
                 }
                 return true;
             }
+
         });
     }
 
@@ -375,6 +399,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }else if (city.contains("特别行政区")){
                     city=city.substring(0,2);
+                }else if (city.contains("试试")){
+                    Toast.makeText(MainActivity.this,"请点击键盘的搜索按钮进行搜索，谢谢！",Toast.LENGTH_SHORT).show();
+                    return;
                 }
                 drawerLayout.closeDrawer(Gravity.START);
                 swipeRefreshLayout.setRefreshing(true);
@@ -382,51 +409,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getForecast.start();
                 offlineCity=city;
                 toolbar.setTitle(city);
+                //处理刷新完成后的显示逻辑
                 if(!swipeRefreshLayout.isRefreshing()) {
                     toolbar.setSubtitle(R.string.finished);
+                    Toast.makeText(MainActivity.this,
+                            getResources().getString(R.string.finished),
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
-
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        new MenuInflater(this).inflate(R.menu.settings,menu);
-       return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.setting:
-                Intent intent = new Intent(this,SettingsActivity.class);
-                startActivityForResult(intent,110);
-                break;
-            case R.id.exit:
-                finish();
-                break;
-            default:
-                break;
-        }
-        return true;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode){
-            case 110:
-                if(resultCode==RESULT_OK){
-                    resultDataT = data.getStringExtra("tmpF");
-                    resultDataH = data.getStringExtra("humF");
-                }
-            break;
-            default:
-                break;
-        }
-    }
-
 
 
     /**
@@ -458,11 +450,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initUI(String[] forecast,String todayInfo,String[] lifestyle,String airQuality,
                         String tempFormat, String humFormat) {
-        Toast weatherInfoEmptyToast = Toast.makeText(MainActivity.this, "天气数据异常，请重新打开网络后重试！", Toast.LENGTH_LONG);
-            if (forecast[0].isEmpty() || todayInfo.isEmpty() || lifestyle[0].isEmpty() || airQuality.isEmpty()) {
+        Toast weatherInfoEmptyToast = Toast.makeText(MainActivity.this, "天气数据异常，请检查网络状态或是否城市名输入有误！", Toast.LENGTH_LONG);
+        if (forecast[0].isEmpty() || todayInfo.isEmpty() || lifestyle[0].isEmpty() || airQuality.isEmpty()) {
+                toolbar.setSubtitle(R.string.failed);
                 weatherInfoEmptyToast.show();
                 return;
-            }
+            }else {
+            toolbar.setSubtitle(R.string.finished);
+        }
         offlineForecast = forecast;
         offlineToday=todayInfo;
         offlineLifestyle=lifestyle;
@@ -640,6 +635,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
 
     private void initTodayHourWeather(String[] hourWeatherData){
+        if (hourWeatherData[0]==null){
+            hourWeatherRecyclerView.setVisibility(View.GONE);
+            return;
+        }else {
+            hourWeatherRecyclerView.setVisibility(View.VISIBLE);
+        }
         offlineHourlyWeather=hourWeatherData;
         List<HourWeather> hourWeatherList = new ArrayList<>();
         for (String hourWeather:hourWeatherData){
@@ -741,95 +742,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(RService,serviceConnection,BIND_AUTO_CREATE);
     }
 
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private void requestNeedPermissions(){
-       String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION,
-               Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,Manifest.permission.WRITE_EXTERNAL_STORAGE};
-       for(String permission:permissions){
-           if(PackageManager.PERMISSION_GRANTED!=ContextCompat.checkSelfPermission(this,permission)){
-               this.requestPermissions(permissions,100);
-           }
-       }
-    }
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void setBarTransparent(){
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.locationImg:
-                openDrawerLayout();
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
-            case 100:
-                if(grantResults.length>0){
-                    for(int result:grantResults){
-                        if(result!=PackageManager.PERMISSION_GRANTED){
-                            Toast.makeText(this,"定位失败，请开启GPS定位权限后重试",Toast.LENGTH_SHORT).show();
-                            break;
-                        }
-                    }
-                    initLocationService();
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    static class MyHandler extends Handler{
-
-        WeakReference<MainActivity> mActivity;
-        private MyHandler(MainActivity activity) {
-            mActivity = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            Bundle bundle;
-            MainActivity mainActivity = mActivity.get();
-            super.handleMessage(msg);
-            switch (msg.what){
-                case getForecast.UPDATE_WEATHER:
-                    bundle = msg.getData();//获取传过来的天气数据;
-                    String[] forecast = bundle.getStringArray("forecast");
-                    String todayInfo = bundle.getString("today");
-                    String[] lifestyle = bundle.getStringArray("lifestyle");
-                    String air = bundle.getString("air");
-                    String[] hourTimeWeather = bundle.getStringArray("hourTimeWeather");
-                    if(air.isEmpty()){
-                        mainActivity.airQ=air="empty";
-                    }else {
-                        mainActivity.airQ=air;
-                    }
-                    mainActivity.fore=forecast;
-                    mainActivity.today=todayInfo;
-                    mainActivity.life=lifestyle;
-                    mainActivity.hourlyWeatherArray=hourTimeWeather;
-                    mainActivity.isStart=false;
-                    if (hourTimeWeather!=null) {
-                        mainActivity.initTodayHourWeather(hourTimeWeather);
-                    }
-                    mainActivity.initUI(forecast,todayInfo,lifestyle,air,null,null);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-
     public void refreshCityInfo(){
         swipeRefreshLayout.setRefreshing(true);
         getForecast getForecast = new getForecast(toolbar.getTitle().toString(),
@@ -896,13 +808,162 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         };
-            sensorManager.registerListener(sensorEventListener, sensor, rate);
+        sensorManager.registerListener(sensorEventListener, sensor, rate);
     }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void requestNeedPermissions(){
+       String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION,
+               Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,Manifest.permission.WRITE_EXTERNAL_STORAGE};
+       for(String permission:permissions){
+           if(PackageManager.PERMISSION_GRANTED!=ContextCompat.checkSelfPermission(this,permission)){
+               this.requestPermissions(permissions,100);
+           }
+       }
+    }
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void setBarTransparent(){
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+    }
+
+    /**
+     * <p>在更新服务中如果通广播获取MainActivity失败，则通过此方法返回一个activity实例</p>
+     * <p>可能导致内存泄漏</p>
+     * */
+    public static MainActivity getMain(){
+        return (MainActivity) mActivity;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.locationImg:
+                openDrawerLayout();
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.settings,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.setting:
+                Intent intent = new Intent(this,SettingsActivity.class);
+                startActivityForResult(intent,110);
+                break;
+            case R.id.exit:
+                finish();
+                break;
+            case R.id.quickLocation:
+                initLocationService();
+                break;
+            case R.id.save_city:
+            {
+                final ProvinceHelper helper = new ProvinceHelper(this);
+                Snackbar snackbar = Snackbar.make(drawerLayout,"该城市已添加到城市列表中，重启应用后生效",
+                        Snackbar.LENGTH_LONG)
+                        .setAction("撤销", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        helper.UndoAddUserSearchCity(queryCityName);
+                        Toast.makeText(MainActivity.this,"撤销成功！",Toast.LENGTH_SHORT).show();
+                    }
+                });
+                if (queryCityName!=null) {
+                    helper.addUserSearchCity(queryCityName);
+                    snackbar.show();
+                }else {
+                    Toast.makeText(this,"请在侧滑栏中输入城市后再尝试添加",Toast.LENGTH_SHORT).show();
+                }
+            }
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        final AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        switch (item.getItemId()){
+            case 0:
+            {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("删除城市")
+                        .setMessage("您确定要删除选择的城市吗，此操作不可撤销！")
+                        .setCancelable(true)
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                TextView textView =  menuInfo.targetView.findViewById(R.id.cityName);
+                                new ProvinceHelper(MainActivity.this).UndoAddUserSearchCity(textView.getText().toString());
+//                                Toast.makeText(MainActivity.this,textView.getText().toString(),Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast.makeText(MainActivity.this,"您取消了操作",Toast.LENGTH_SHORT).show();
+                            }
+                        }).show();
+            }
+            break;
+            default:
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode){
+            case 110:
+                if(resultCode==RESULT_OK){
+                    resultDataT = data.getStringExtra("tmpF");
+                    resultDataH = data.getStringExtra("humF");
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 100:
+                if(grantResults.length>0){
+                    for(int result:grantResults){
+                        if(result!=PackageManager.PERMISSION_GRANTED){
+                            Toast.makeText(this,"定位失败，请开启GPS定位权限后重试",Toast.LENGTH_SHORT).show();
+                            break;
+                        }
+                    }
+                    initLocationService();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(Gravity.START)){
-//            Log.i(TAG, " drawerLayout is open,trying close it.");
             drawerLayout.closeDrawer(Gravity.START);
         }else {
             //与上次点击返回键时刻作差
@@ -912,8 +973,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //并记录下本次点击“返回键”的时刻，以便下次进行判断
                 mExitTime = System.currentTimeMillis();
             }  else {
-                //小于2000ms则认为是用户希望退出程序-调用exit方法进行退出
-               System.exit(0);
+                //小于2000ms则认为是用户希望退出程序-调用finish方法进行退出
+               finish();
             }
         }
     }
@@ -977,12 +1038,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    /**
-     * <p>在更新服务中如果通广播获取MainActivity失败，则通过此方法返回一个activity实例</p>
-     * <p>可能导致内存泄漏</p>
-     * */
-    public static MainActivity getMain(){
-        return (MainActivity) mActivity;
+    static class MyHandler extends Handler{
+
+        WeakReference<MainActivity> mActivity;
+        private MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Bundle bundle;
+            MainActivity mainActivity = mActivity.get();
+            super.handleMessage(msg);
+            switch (msg.what){
+                case getForecast.UPDATE_WEATHER:
+                    bundle = msg.getData();//获取传过来的天气数据;
+                    String[] forecast = bundle.getStringArray("forecast");
+                    String todayInfo = bundle.getString("today");
+                    String[] lifestyle = bundle.getStringArray("lifestyle");
+                    String air = bundle.getString("air");
+                    String[] hourTimeWeather = bundle.getStringArray("hourTimeWeather");
+                    if(air.isEmpty()){
+                        mainActivity.airQ=air="empty";
+                    }else {
+                        mainActivity.airQ=air;
+                    }
+                    mainActivity.fore=forecast;
+                    mainActivity.today=todayInfo;
+                    mainActivity.life=lifestyle;
+                    mainActivity.hourlyWeatherArray=hourTimeWeather;
+                    mainActivity.isStart=false;
+                    if (hourTimeWeather!=null) {
+                        mainActivity.initTodayHourWeather(hourTimeWeather);
+                    }
+                    mainActivity.initUI(forecast,todayInfo,lifestyle,air,null,null);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     class refreshReceiver extends BroadcastReceiver{

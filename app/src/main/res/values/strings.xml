@@ -6,6 +6,8 @@
     <string name="TodayMinTemperature">最低温</string>
     <string name="WindDirection">风向</string>
     <string name="setting">单位设置</string>
+    <string name="quickReturnLocation">快速定位</string>
+    <string name="saveCity">保存当前城市</string>
     <string name="exiting">退出程序</string>
     <string name="temperature">温度单位</string>
     <string name="unitC">\u2103-摄氏度</string>
@@ -19,8 +21,12 @@
     <string name="location">location</string>
     <string name="forecast">未来七天预报</string>
     <string name="tmp">25\u2103</string>
-    <string name="version">当前版本：V1.2.2</string>
+    <string name="version">当前版本：V1.2.5</string>
+    <string name="failed">更新失败</string>
     <string name="finished">更新完成</string>
     <string name="banquan">\u00A92018.Powered by ShouXianghang.All rights reserved.</string>
     <string name="CTemper">\u2103</string>
+    <string name="XX">XX</string>
+    <string name="signXX">XX\u2103</string>
+    <string name="longSignXX">XX\u2103-XX\u2103</string>
 </resources>

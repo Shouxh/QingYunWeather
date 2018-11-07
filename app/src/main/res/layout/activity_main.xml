@@ -26,7 +26,7 @@
             app:popupTheme="@style/Base.Theme.AppCompat.Light">
 
             <ImageView
-                android:contentDescription="快捷打开侧滑栏"
+                android:contentDescription="@string/XX"
                 android:id="@+id/locationImg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
                     android:id="@+id/temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="29℃"
+                    android:text="@string/signXX"
                     android:textColor="#ffffff"
                     android:textSize="60sp"
                     android:layout_gravity="end"
@@ -77,6 +77,7 @@
                     />
 
                 <ImageView
+                    android:contentDescription="@string/weatherLabel"
                     android:id="@+id/weatherImage"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
@@ -91,7 +92,7 @@
                     android:id="@+id/weatherStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="晴"
+                    android:text="@string/weatherLabel"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
                     android:layout_gravity="end"
@@ -104,7 +105,7 @@
                     android:layout_marginTop="145dp"
                     android:layout_marginEnd="22dp"
                     android:layout_gravity="end"
-                    android:text="15\u2103-30\u2103"
+                    android:text="@string/longSignXX"
                     android:textColor="#ffffff"
                     android:textSize="18sp"
                     android:layout_width="wrap_content"
