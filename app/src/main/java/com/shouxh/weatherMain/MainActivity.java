@@ -908,7 +908,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void onClick(DialogInterface dialog, int which) {
                                 TextView textView =  menuInfo.targetView.findViewById(R.id.cityName);
                                 new ProvinceHelper(MainActivity.this).UndoAddUserSearchCity(textView.getText().toString());
-//                                Toast.makeText(MainActivity.this,textView.getText().toString(),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this,"删除成功，重启应用后生效！",Toast.LENGTH_SHORT).show();
                             }
                         })
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {
