@@ -665,6 +665,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     imageResource = R.mipmap.snow;
                 }
             }
+            SharedPreferences sharedPreferences = getSharedPreferences("Setting",MODE_PRIVATE);
+            tempF = sharedPreferences.getString("temperatureFormat",SettingsActivity
+                    .choose[0][0]);
             hourTemperature=setTemperatureFormat(hourTemperature,tempF);
             HourWeather weather = new HourWeather(hourTime,imageResource,hourTemperature);
             hourWeatherList.add(weather);
@@ -982,8 +985,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPostResume() {
         if(!isStart){
-            initUI(fore,today,life,airQ,resultDataT,resultDataH);
-            initTodayHourWeather(hourlyWeatherArray);
+                initUI(fore, today, life, airQ, null, null);
+                initTodayHourWeather(hourlyWeatherArray);
         }
         isShakeChecked =getSharedPreferences("Setting",MODE_PRIVATE).getBoolean
                 ("isShakeChecked",false);

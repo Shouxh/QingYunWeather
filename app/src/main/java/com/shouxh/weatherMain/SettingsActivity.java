@@ -1,6 +1,7 @@
 package com.shouxh.weatherMain;
 
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,13 +14,11 @@ import android.os.Bundle;
 
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 
-import android.widget.CompoundButton;
 import android.widget.ListView;
 
 import android.widget.RadioButton;
@@ -28,6 +27,7 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +44,8 @@ public class SettingsActivity extends AppCompatActivity {
     private SettingsListAdapter adapter;
     private Switch switcher;
     private SharedPreferences sharedPreferences;
-    private boolean isShakedChecked = false;
+    ProgressDialog progressDialog = null;
+    private boolean isShackedChecked = false;
     private  int CHOICE=0;
     private int SECOND_CHOICE = 0;
     @Override
@@ -64,12 +65,13 @@ public class SettingsActivity extends AppCompatActivity {
         if(Build.VERSION.SDK_INT>= Build.VERSION_CODES.LOLLIPOP) {
             setBar();
         }
+        progressDialog = new ProgressDialog(this);
         sharedPreferences=getSharedPreferences("Setting",MODE_PRIVATE);
         String tF = sharedPreferences.getString("temperatureFormat",choose[0][0]);
         String hF = sharedPreferences.getString("humidityFormat",choose[1][0]);
         int choice1 = sharedPreferences.getInt("choice1",0);
         int choice2 = sharedPreferences.getInt("choice2",0);
-        isShakedChecked=sharedPreferences.getBoolean("isShakeChecked",false);
+        isShackedChecked =sharedPreferences.getBoolean("isShakeChecked",false);
             initSettingsList(0, CHOICE, false);
         {
             CHOICE=choice1;
@@ -102,10 +104,10 @@ public class SettingsActivity extends AppCompatActivity {
                        switcher = adapter.getmSwitch(position);
                         if(!switcher.isChecked()){
                             switcher.setChecked(true);
-                            isShakedChecked=true;
+                            isShackedChecked =true;
                         }else {
                             switcher.setChecked(false);
-                            isShakedChecked=false;
+                            isShackedChecked =false;
                         }
                         break;
                     case 3:
@@ -180,7 +182,7 @@ public class SettingsActivity extends AppCompatActivity {
                         default:
                             break;
                     }
-                }else if(order==1){
+                }else {
                     switch (checkedId) {
                         case R.id.firstChoose:
                             SECOND_CHOICE = 0;
@@ -226,33 +228,53 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        sharedSetting[0]=settingsList.get(0).getValue();
-        sharedSetting[1]=settingsList.get(1).getValue();
-        sharedPreferences.edit()
-                .putString("temperatureFormat",sharedSetting[0])
-                .putString("humidityFormat",sharedSetting[1])
-                .putInt("choice1",CHOICE)
-                .putInt("choice2",SECOND_CHOICE)
-                .putBoolean("isShakeChecked",isShakedChecked)
-                .apply();
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
         //双保险
         Intent intent = new Intent();
         intent.putExtra("tmpF",sharedSetting[0]);
         intent.putExtra("humF",sharedSetting[1]);
         setResult(RESULT_OK,intent);
-        super.onStop();
+        super.onPause();
     }
+    @Override
+    public void onBackPressed() {
+
+        progressDialog.setTitle("请稍等一小会");
+        progressDialog.setMessage("正在保存设置...");
+        progressDialog.setCancelable(false);
+        progressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                Toast.makeText(SettingsActivity.this,"设置保存完成",Toast.LENGTH_SHORT).show();
+            }
+        });
+        progressDialog.show();
+        sharedSetting[0]=settingsList.get(0).getValue();
+        sharedSetting[1]=settingsList.get(1).getValue();
+        Log.i(TAG, "未保存的温度单位："+sharedSetting[0]+"  未保存的湿度单位："+sharedSetting[1]);
+        sharedPreferences.edit()
+                .putString("temperatureFormat",sharedSetting[0])
+                .putString("humidityFormat",sharedSetting[1])
+                .putInt("choice1",CHOICE)
+                .putInt("choice2",SECOND_CHOICE)
+                .putBoolean("isShakeChecked", isShackedChecked)
+                .apply();
+//        Log.i(TAG, "文件中的温度单位："+sharedPreferences.getString("temperatureFormat","fake")
+//                + "   文件中的湿度单位："+sharedPreferences.getString("humidityFormat","fake"));
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Log.e(TAG, e.getLocalizedMessage());
+        }
+        progressDialog.dismiss();
+        super.onBackPressed();
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case android.R.id.home:
-                finish();
+                onBackPressed();
                 break;
             default:
                 break;
